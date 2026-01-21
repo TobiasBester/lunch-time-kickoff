@@ -62,12 +62,12 @@ After researching available football APIs, here are the viable options:
 - **Runtime**: Node.js 18+
 - **Framework**: Express.js
 - **Language**: TypeScript
-- **Database**: PostgreSQL (for caching and historical data)
+- **Database**: PostgreSQL (for persistent storage and historical data)
 - **ORM**: Prisma (type-safe database access)
-- **Caching**: Redis (optional, for faster repeated queries)
+- **Caching**: Redis (for fast repeated queries and rate limit tracking)
 
 **Development Tools:**
-- **Package Manager**: npm or pnpm
+- **Package Manager**: npm
 - **Linting**: ESLint + Prettier
 - **Testing**: Vitest (unit), Playwright (e2e)
 - **API Documentation**: OpenAPI/Swagger
@@ -82,7 +82,7 @@ lunch-time-kickoff/
 │   ├── frontend/          # Vue 3 + Vuetify app
 │   ├── backend/           # Express API server
 │   └── shared/            # Shared types, interfaces
-├── docker-compose.yml     # PostgreSQL, Redis (optional)
+├── docker-compose.yml     # PostgreSQL + Redis
 └── package.json           # Monorepo root
 ```
 
@@ -190,7 +190,7 @@ interface FootballDataProvider {
    - [ ] Configure path aliases and module resolution
 
 2. **Development Environment**
-   - [ ] Create docker-compose.yml for PostgreSQL
+   - [ ] Create docker-compose.yml for PostgreSQL and Redis
    - [ ] Set up environment variable management (.env files)
    - [ ] Configure ESLint and Prettier
    - [ ] Set up git hooks (husky) for linting
@@ -203,7 +203,7 @@ interface FootballDataProvider {
 
 **Deliverables:**
 - Working monorepo with all packages scaffolded
-- Docker Compose running PostgreSQL locally
+- Docker Compose running PostgreSQL and Redis locally
 - TypeScript compilation working across all packages
 
 ---
@@ -401,18 +401,18 @@ interface FootballDataProvider {
 ## Decisions Made
 
 ✅ **Data Source**: football-data.org (free tier, swappable architecture)
-✅ **Tech Stack**: Vue 3 + TypeScript + Vuetify / Node.js + Express + PostgreSQL
+✅ **Tech Stack**: Vue 3 + TypeScript + Vuetify / Node.js + Express + PostgreSQL + Redis
 ✅ **Architecture**: Monorepo with backend + frontend + shared packages
 ✅ **Mobile Support**: Not required for MVP
 ✅ **Updates**: Manual refresh (no real-time WebSocket for MVP)
+✅ **Interactivity**: Charts support drill-down clicks (e.g., click "Monday" to see all Monday matches)
+✅ **Package Manager**: npm
+✅ **Caching**: Redis + PostgreSQL (Redis for fast queries, PostgreSQL for persistent storage)
 
 ## Outstanding Questions
 
 1. **Hosting**: Where should we deploy this? (Can decide later)
 2. **Authentication**: Single-user or multi-user? (Assuming single-user for MVP)
-3. **Interactivity Level**: Should charts support drill-down clicks or just hover tooltips?
-4. **Package Manager**: npm or pnpm preference?
-5. **Redis**: Should we include Redis for additional caching or is PostgreSQL sufficient for MVP?
 
 ## Next Steps - Immediate Actions
 
