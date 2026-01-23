@@ -1,0 +1,38 @@
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build outputs
+dist
+build
+.vite
+
+# Git
+.git
+.gitignore
+.github
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+*.md
+.prettierrc
+.prettierignore
+.eslintrc.json
+.claude
+docker-compose.yml
