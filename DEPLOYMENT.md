@@ -46,7 +46,7 @@ gcloud services enable artifactregistry.googleapis.com
 # Create a repository to store Docker images
 gcloud artifacts repositories create lunch-time-kickoff \
   --repository-format=docker \
-  --location=us-central1 \
+  --location=africa-south1 \
   --description="Docker repository for Lunch Time Kickoff"
 ```
 
@@ -54,29 +54,29 @@ gcloud artifacts repositories create lunch-time-kickoff \
 
 ```bash
 # Create a service account for deployments
-gcloud iam service-accounts create github-actions-deployer \
-  --display-name="GitHub Actions Deployer"
+gcloud iam service-accounts create github-pipeline \
+  --display-name="GitHub Pipeline"
 
 # Grant necessary permissions
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:github-actions-deployer@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --member="serviceAccount:github-pipeline@${PROJECT_ID}.iam.gserviceaccount.com" \
   --role="roles/run.admin"
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:github-actions-deployer@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --member="serviceAccount:github-pipeline@${PROJECT_ID}.iam.gserviceaccount.com" \
   --role="roles/storage.admin"
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:github-actions-deployer@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --member="serviceAccount:github-pipeline@${PROJECT_ID}.iam.gserviceaccount.com" \
   --role="roles/artifactregistry.writer"
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:github-actions-deployer@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --member="serviceAccount:github-pipeline@${PROJECT_ID}.iam.gserviceaccount.com" \
   --role="roles/iam.serviceAccountUser"
 
 # Create and download JSON key
 gcloud iam service-accounts keys create github-actions-key.json \
-  --iam-account=github-actions-deployer@${PROJECT_ID}.iam.gserviceaccount.com
+  --iam-account=github-pipeline@${PROJECT_ID}.iam.gserviceaccount.com
 ```
 
 This creates a file called `github-actions-key.json` - keep this secure!
@@ -148,7 +148,7 @@ After deployment completes:
 
 ```bash
 # Get service URLs
-gcloud run services list --platform managed --region us-central1
+gcloud run services list --platform managed --region africa-south1
 ```
 
 Or visit the [Cloud Run console](https://console.cloud.google.com/run).
@@ -188,7 +188,7 @@ docker run -p 8080:8080 frontend-test
 - Verify the repository exists: `gcloud artifacts repositories list`
 
 ### Service won't start
-- Check logs: `gcloud run services logs read SERVICE_NAME --region us-central1`
+- Check logs: `gcloud run services logs read SERVICE_NAME --region africa-south1`
 - Verify Dockerfile builds locally first
 
 ### Port binding errors
@@ -203,13 +203,13 @@ You can deploy manually using gcloud:
 # Deploy backend
 gcloud run deploy lunch-time-kickoff-backend \
   --source packages/backend \
-  --region us-central1 \
+  --region africa-south1 \
   --allow-unauthenticated
 
 # Deploy frontend
 gcloud run deploy lunch-time-kickoff-frontend \
   --source packages/frontend \
-  --region us-central1 \
+  --region africa-south1 \
   --allow-unauthenticated
 ```
 
@@ -219,7 +219,7 @@ Add environment variables to Cloud Run services:
 
 ```bash
 gcloud run services update lunch-time-kickoff-backend \
-  --region us-central1 \
+  --region africa-south1 \
   --set-env-vars "DATABASE_URL=xxx,API_KEY=yyy"
 ```
 
