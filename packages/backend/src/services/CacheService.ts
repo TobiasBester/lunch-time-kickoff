@@ -28,6 +28,7 @@ export class CacheService {
   async getFromRedis<T>(key: string): Promise<T | null> {
     try {
       const redis = getRedis();
+      if (!redis) return null;
       const data = await redis.get(key);
       if (data) return JSON.parse(data) as T;
     } catch {
@@ -39,6 +40,7 @@ export class CacheService {
   async setInRedis<T>(key: string, data: T, ttlSeconds: number): Promise<void> {
     try {
       const redis = getRedis();
+      if (!redis) return;
       await redis.set(key, JSON.stringify(data), 'EX', ttlSeconds);
     } catch {
       // Redis unavailable, skip
@@ -264,9 +266,11 @@ export class CacheService {
 
     try {
       const redis = getRedis();
-      const keys = await redis.keys('ltk:*');
-      if (keys.length > 0) {
-        await redis.del(...keys);
+      if (redis) {
+        const keys = await redis.keys('ltk:*');
+        if (keys.length > 0) {
+          await redis.del(...keys);
+        }
       }
     } catch {
       // Redis unavailable
@@ -291,9 +295,11 @@ export class CacheService {
 
     try {
       const redis = getRedis();
-      const keys = await redis.keys(`ltk:${type}:*`);
-      if (keys.length > 0) {
-        await redis.del(...keys);
+      if (redis) {
+        const keys = await redis.keys(`ltk:${type}:*`);
+        if (keys.length > 0) {
+          await redis.del(...keys);
+        }
       }
     } catch {
       // Redis unavailable
