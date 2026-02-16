@@ -81,12 +81,30 @@ gcloud iam service-accounts keys create github-actions-key.json \
 
 This creates a file called `github-actions-key.json` - keep this secure!
 
-### Step 5: Add GitHub Secrets
+### Step 5: Set Up Neon PostgreSQL (Free Tier)
+
+The backend uses PostgreSQL for caching API data. We use [Neon](https://neon.tech) for a free serverless PostgreSQL instance.
+
+1. Sign up at [neon.tech](https://neon.tech) (GitHub sign-in works)
+2. Create a new project:
+   - **Name**: `lunch-time-kickoff`
+   - **Region**: `AWS EU (Frankfurt)` - closest to South Africa
+   - **Postgres version**: 16+
+3. Copy the **connection string** from the dashboard (looks like `postgresql://user:pass@ep-xxx.eu-central-1.aws.neon.tech/neondb?sslmode=require`)
+4. Run the Prisma schema push to create tables:
+   ```bash
+   cd packages/backend
+   DATABASE_URL="your-neon-connection-string" npx prisma db push
+   ```
+
+**Note:** Redis is optional. The backend works with just PostgreSQL for caching. To add Redis later, set the `REDIS_URL` environment variable.
+
+### Step 6: Add GitHub Secrets
 
 1. Go to your GitHub repository
 2. Navigate to **Settings** → **Secrets and variables** → **Actions**
 3. Click **New repository secret**
-4. Add these two secrets:
+4. Add these secrets:
 
    **Secret 1: GCP_PROJECT_ID**
    - Name: `GCP_PROJECT_ID`
@@ -97,7 +115,15 @@ This creates a file called `github-actions-key.json` - keep this secure!
    - Value: The entire contents of `github-actions-key.json`
    - Copy the whole JSON file content, including the curly braces
 
-### Step 6: Test the Deployment
+   **Secret 3: DATABASE_URL**
+   - Name: `DATABASE_URL`
+   - Value: Your Neon PostgreSQL connection string
+
+   **Secret 4: FOOTBALL_DATA_API_KEY** (optional for now)
+   - Name: `FOOTBALL_DATA_API_KEY`
+   - Value: Your API key from [football-data.org](https://www.football-data.org/client/register)
+
+### Step 7: Test the Deployment
 
 Now you're ready to deploy! Create and push a version tag:
 
@@ -225,11 +251,23 @@ gcloud run services update lunch-time-kickoff-backend \
 
 Or update via the [Cloud Run Console](https://console.cloud.google.com/run).
 
+## Infrastructure
+
+### PostgreSQL (Neon - Free Tier)
+- **Provider**: [Neon](https://neon.tech)
+- **Region**: AWS EU (Frankfurt) - closest available to South Africa
+- **Free tier**: 0.5 GB storage, 190 compute hours/month, auto-suspend after 5 min idle
+- **Latency**: ~150ms from `africa-south1` (acceptable since DB is only hit on cache misses)
+
+### Redis (Optional)
+- Redis is not required. The backend uses PostgreSQL as the persistent cache layer.
+- When `REDIS_URL` is not set, the Redis layer is skipped entirely.
+- To add Redis later (e.g., via [Upstash](https://upstash.com) free tier or GCP Memorystore), set the `REDIS_URL` env var on Cloud Run.
+
 ## Next Steps
 
 - [ ] Set up custom domain names
-- [ ] Configure Cloud SQL for PostgreSQL
-- [ ] Add Cloud Memorystore for Redis
+- [ ] Add Redis caching layer (Upstash free tier or GCP Memorystore)
 - [ ] Set up monitoring with Cloud Logging
 - [ ] Configure environment-specific settings
 - [ ] Add secrets management with Secret Manager
