@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model CachedCompetition {
+  id        String   @id
+  name      String
+  code      String
+  emblemUrl String?
+
+  seasons CachedSeason[]
+
+  cachedAt  DateTime @default(now())
+  expiresAt DateTime
+
+  @@map("cached_competitions")
+}
+
+model CachedSeason {
+  id              String   @id
+  competitionId   String
+  startDate       DateTime
+  endDate         DateTime
+  currentMatchday Int?
+
+  competition CachedCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  teams       CachedTeam[]
+  matches     CachedMatch[]
+
+  cachedAt  DateTime @default(now())
+  expiresAt DateTime
+
+  @@map("cached_seasons")
+}
+
+model CachedTeam {
+  id        String  @id
+  seasonId  String
+  name      String
+  shortName String
+  tla       String
+  crestUrl  String?
+
+  season CachedSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  cachedAt  DateTime @default(now())
+  expiresAt DateTime
+
+  @@map("cached_teams")
+}
+
+model CachedMatch {
+  id            String   @id
+  competitionId String
+  seasonId      String
+  matchday      Int
+  utcDate       DateTime
+  status        String
+  homeTeamId    String
+  homeTeamName  String
+  awayTeamId    String
+  awayTeamName  String
+  ftHomeScore   Int?
+  ftAwayScore   Int?
+  htHomeScore   Int?
+  htAwayScore   Int?
+
+  season CachedSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  cachedAt  DateTime @default(now())
+  expiresAt DateTime
+
+  @@map("cached_matches")
+}
+
+model ApiUsageLog {
+  id         Int      @id @default(autoincrement())
+  provider   String
+  endpoint   String
+  statusCode Int
+  timestamp  DateTime @default(now())
+
+  @@index([provider, timestamp])
+  @@map("api_usage_logs")
+}
