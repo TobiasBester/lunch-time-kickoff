@@ -36,6 +36,10 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/backend/dist ./packages/backend/dist
 
+# Copy Prisma schema, config, and migrations for prisma migrate deploy
+COPY packages/backend/prisma ./packages/backend/prisma
+COPY packages/backend/prisma.config.ts ./packages/backend/prisma.config.ts
+
 # Cloud Run will set PORT environment variable
 ENV NODE_ENV=production
 EXPOSE 8080
