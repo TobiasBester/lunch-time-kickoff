@@ -3,7 +3,13 @@ import { config } from './config';
 
 let redis: Redis | null = null;
 
-export function getRedis(): Redis {
+export function isRedisEnabled(): boolean {
+  return config.redis.enabled;
+}
+
+export function getRedis(): Redis | null {
+  if (!config.redis.enabled) return null;
+
   if (!redis) {
     redis = new Redis(config.redis.url, {
       maxRetriesPerRequest: 3,

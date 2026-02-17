@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { config } from './config';
 import prisma from './db';
-import { getRedis, closeRedis } from './redis';
+import { getRedis, isRedisEnabled, closeRedis } from './redis';
 import { FootballDataOrgProvider } from './services/FootballDataOrgProvider';
 import { DataService } from './services/DataService';
 import { createCompetitionsRouter } from './routes/competitions';
@@ -33,16 +33,20 @@ app.get('/health', async (req: Request, res: Response) => {
     checks.database = 'error';
   }
 
-  // Check Redis
-  try {
-    const redis = getRedis();
-    await redis.ping();
-    checks.redis = 'ok';
-  } catch {
-    checks.redis = 'error';
+  // Check Redis (optional)
+  if (isRedisEnabled()) {
+    try {
+      const redis = getRedis();
+      if (redis) await redis.ping();
+      checks.redis = 'ok';
+    } catch {
+      checks.redis = 'error';
+    }
+  } else {
+    checks.redis = 'disabled';
   }
 
-  const allOk = Object.values(checks).every((v) => v === 'ok');
+  const allOk = Object.values(checks).every((v) => v === 'ok' || v === 'disabled');
 
   res.status(allOk ? 200 : 503).json({
     status: allOk ? 'ok' : 'degraded',
