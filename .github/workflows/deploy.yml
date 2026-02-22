@@ -2,8 +2,8 @@ name: Deploy to Google Cloud Run
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -35,9 +35,9 @@ jobs:
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
-      - name: Extract version from tag
+      - name: Extract version from commit SHA
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: echo "VERSION=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -116,9 +116,9 @@ jobs:
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
-      - name: Extract version from tag
+      - name: Extract version from commit SHA
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: echo "VERSION=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
       - name: Build Frontend Docker image
         run: |
@@ -159,6 +159,6 @@ jobs:
       - name: Deployment Summary
         run: |
           echo "🚀 Deployment Complete!"
-          echo "📦 Version: ${{ steps.version.outputs.VERSION }}"
+          echo "📦 Commit: ${{ steps.version.outputs.VERSION }}"
           echo "🔗 Frontend: ${{ steps.frontend-url.outputs.URL }}"
           echo "🔗 Backend: ${{ needs.deploy-backend.outputs.backend-url }}"
