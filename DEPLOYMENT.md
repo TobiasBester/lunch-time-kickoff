@@ -91,11 +91,12 @@ The backend uses PostgreSQL for caching API data. We use [Neon](https://neon.tec
    - **Region**: `AWS EU (Frankfurt)` - closest to South Africa
    - **Postgres version**: 16+
 3. Copy the **connection string** from the dashboard (looks like `postgresql://user:pass@ep-xxx.eu-central-1.aws.neon.tech/neondb?sslmode=require`)
-4. Run the Prisma schema push to create tables:
+4. Run Prisma migrations to create tables:
    ```bash
    cd packages/backend
-   DATABASE_URL="your-neon-connection-string" npx prisma db push
+   DATABASE_URL="your-neon-connection-string" npx prisma migrate deploy
    ```
+   This applies all pending migrations from `prisma/migrations/` to the database. Migrations are also run automatically during CI/CD deployments (see [Database Migrations](#database-migrations) below).
 
 **Note:** Redis is optional. The backend works with just PostgreSQL for caching. To add Redis later, set the `REDIS_URL` environment variable.
 
@@ -263,6 +264,61 @@ Or update via the [Cloud Run Console](https://console.cloud.google.com/run).
 - Redis is not required. The backend uses PostgreSQL as the persistent cache layer.
 - When `REDIS_URL` is not set, the Redis layer is skipped entirely.
 - To add Redis later (e.g., via [Upstash](https://upstash.com) free tier or GCP Memorystore), set the `REDIS_URL` env var on Cloud Run.
+
+## Database Migrations
+
+The project uses [Prisma Migrate](https://www.prisma.io/docs/orm/prisma-migrate) for managing database schema changes. Migration files are version-controlled under `packages/backend/prisma/migrations/`.
+
+### How it works
+
+- **In CI/CD**: Migrations run automatically during deployment, before the new container is deployed. If a migration fails, the deployment stops and the previous version continues running.
+- **Manually**: You can run migrations against any database using the scripts below.
+
+### Available scripts
+
+Run these from `packages/backend/`:
+
+```bash
+# Apply all pending migrations to the database (production-safe)
+npm run db:migrate:deploy
+
+# Create a new migration during development (requires a running database)
+npm run db:migrate:dev
+
+# Check which migrations have been applied
+npm run db:migrate:status
+```
+
+### Development workflow
+
+When you modify `prisma/schema.prisma`:
+
+1. Make your changes to the schema
+2. Run `npm run db:migrate:dev` (this creates a new migration file and applies it to your local DB)
+3. Commit the new migration file under `prisma/migrations/`
+4. On deployment, `prisma migrate deploy` will apply the new migration to production
+
+### First-time setup for a new database
+
+If you're setting up a fresh database (e.g., a new Neon instance):
+
+```bash
+cd packages/backend
+DATABASE_URL="your-connection-string" npx prisma migrate deploy
+```
+
+This creates the `_prisma_migrations` tracking table and applies all existing migrations.
+
+### Baseline an existing database
+
+If your production database already has tables (e.g., from a previous `prisma db push`) but no migration history, you need to baseline it:
+
+```bash
+cd packages/backend
+DATABASE_URL="your-connection-string" npx prisma migrate resolve --applied 20260217000000_initial
+```
+
+This marks the initial migration as already applied without running it, so future migrations work correctly.
 
 ## Next Steps
 
