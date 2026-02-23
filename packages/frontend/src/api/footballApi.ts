@@ -44,11 +44,15 @@ export interface HealthStatus {
   redis: string;
 }
 
-const api = axios.create({ baseURL: '/api' });
+// In production, VITE_API_BASE_URL is set to the backend Cloud Run URL at build time.
+// In development, it is empty and Vite's dev-server proxy forwards /api and /health.
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+
+const api = axios.create({ baseURL: `${BACKEND_URL}/api` });
 
 export const footballApi = {
   async getHealth(): Promise<HealthStatus> {
-    const { data } = await axios.get('/health');
+    const { data } = await axios.get(`${BACKEND_URL}/health`);
     return data;
   },
 

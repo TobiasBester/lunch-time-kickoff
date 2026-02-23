@@ -15,6 +15,11 @@ RUN npm ci
 COPY packages/shared ./packages/shared
 COPY packages/frontend ./packages/frontend
 
+# VITE_API_BASE_URL is baked into the static bundle at build time.
+# In CI it is set to the deployed backend Cloud Run URL.
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Build shared package first, then frontend
 RUN npm run build:shared
 RUN npm run build:frontend

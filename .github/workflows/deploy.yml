@@ -15,6 +15,8 @@ jobs:
   deploy-backend:
     name: Deploy Backend to Cloud Run
     runs-on: ubuntu-latest
+    outputs:
+      backend-url: ${{ steps.backend-url.outputs.URL }}
 
     permissions:
       contents: read
@@ -124,6 +126,7 @@ jobs:
         run: |
           docker build \
             -f packages/frontend/Dockerfile \
+            --build-arg VITE_API_BASE_URL=${{ needs.deploy-backend.outputs.backend-url }} \
             -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/lunch-time-kickoff/${{ env.FRONTEND_SERVICE }}:${{ steps.version.outputs.VERSION }} \
             -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/lunch-time-kickoff/${{ env.FRONTEND_SERVICE }}:latest \
             .
