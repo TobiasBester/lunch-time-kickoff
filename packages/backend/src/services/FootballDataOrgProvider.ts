@@ -134,6 +134,7 @@ export class FootballDataOrgProvider implements FootballDataProvider {
     return data.seasons.map((s) => ({
       id: String(s.id),
       competitionId,
+      year: new Date(s.startDate).getFullYear(),
       startDate: new Date(s.startDate),
       endDate: new Date(s.endDate),
       currentMatchday: s.currentMatchday ?? undefined,
