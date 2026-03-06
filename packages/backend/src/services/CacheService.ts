@@ -75,10 +75,10 @@ export class CacheService {
     const expiresAt = new Date(Date.now() + getTtl('competitions') * 1000);
 
     await prisma.$transaction(
-      [
-        prisma.cachedCompetition.deleteMany(),
-        ...competitions.map((c) =>
-          prisma.cachedCompetition.create({
+      async (tx) => {
+        await tx.cachedCompetition.deleteMany();
+        for (const c of competitions) {
+          await tx.cachedCompetition.create({
             data: {
               id: c.id,
               name: c.name,
@@ -86,9 +86,9 @@ export class CacheService {
               emblemUrl: c.emblemUrl ?? null,
               expiresAt,
             },
-          })
-        ),
-      ],
+          });
+        }
+      },
       { timeout: 15000 }
     );
 
@@ -126,10 +126,10 @@ export class CacheService {
     const expiresAt = new Date(Date.now() + getTtl('seasons') * 1000);
 
     await prisma.$transaction(
-      [
-        prisma.cachedSeason.deleteMany({ where: { competitionId } }),
-        ...seasons.map((s) =>
-          prisma.cachedSeason.create({
+      async (tx) => {
+        await tx.cachedSeason.deleteMany({ where: { competitionId } });
+        for (const s of seasons) {
+          await tx.cachedSeason.create({
             data: {
               id: s.id,
               competitionId: s.competitionId,
@@ -138,9 +138,9 @@ export class CacheService {
               currentMatchday: s.currentMatchday ?? null,
               expiresAt,
             },
-          })
-        ),
-      ],
+          });
+        }
+      },
       { timeout: 15000 }
     );
 
@@ -177,10 +177,10 @@ export class CacheService {
     const expiresAt = new Date(Date.now() + getTtl('teams') * 1000);
 
     await prisma.$transaction(
-      [
-        prisma.cachedTeam.deleteMany({ where: { seasonId } }),
-        ...teams.map((t) =>
-          prisma.cachedTeam.create({
+      async (tx) => {
+        await tx.cachedTeam.deleteMany({ where: { seasonId } });
+        for (const t of teams) {
+          await tx.cachedTeam.create({
             data: {
               id: t.id,
               seasonId,
@@ -190,9 +190,9 @@ export class CacheService {
               crestUrl: t.crestUrl ?? null,
               expiresAt,
             },
-          })
-        ),
-      ],
+          });
+        }
+      },
       { timeout: 15000 }
     );
 
@@ -236,10 +236,10 @@ export class CacheService {
     const expiresAt = new Date(Date.now() + getTtl('matches') * 1000);
 
     await prisma.$transaction(
-      [
-        prisma.cachedMatch.deleteMany({ where: { seasonId } }),
-        ...matches.map((m) =>
-          prisma.cachedMatch.create({
+      async (tx) => {
+        await tx.cachedMatch.deleteMany({ where: { seasonId } });
+        for (const m of matches) {
+          await tx.cachedMatch.create({
             data: {
               id: m.id,
               competitionId: m.competitionId,
@@ -257,9 +257,9 @@ export class CacheService {
               htAwayScore: m.score.halfTime.away,
               expiresAt,
             },
-          })
-        ),
-      ],
+          });
+        }
+      },
       { timeout: 15000 }
     );
 
