@@ -74,20 +74,23 @@ export class CacheService {
   async cacheCompetitions(competitions: Competition[]): Promise<void> {
     const expiresAt = new Date(Date.now() + getTtl('competitions') * 1000);
 
-    await prisma.$transaction([
-      prisma.cachedCompetition.deleteMany(),
-      ...competitions.map((c) =>
-        prisma.cachedCompetition.create({
-          data: {
-            id: c.id,
-            name: c.name,
-            code: c.code,
-            emblemUrl: c.emblemUrl ?? null,
-            expiresAt,
-          },
-        })
-      ),
-    ]);
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.cachedCompetition.deleteMany();
+        for (const c of competitions) {
+          await tx.cachedCompetition.create({
+            data: {
+              id: c.id,
+              name: c.name,
+              code: c.code,
+              emblemUrl: c.emblemUrl ?? null,
+              expiresAt,
+            },
+          });
+        }
+      },
+      { timeout: 15000 }
+    );
 
     const key = this.redisKey('competitions', 'all');
     await this.setInRedis(key, competitions, getTtl('competitions'));
@@ -109,6 +112,7 @@ export class CacheService {
     const result: Season[] = rows.map((r) => ({
       id: r.id,
       competitionId: r.competitionId,
+      year: r.startDate.getFullYear(),
       startDate: r.startDate,
       endDate: r.endDate,
       currentMatchday: r.currentMatchday ?? undefined,
@@ -121,21 +125,24 @@ export class CacheService {
   async cacheSeasons(competitionId: string, seasons: Season[]): Promise<void> {
     const expiresAt = new Date(Date.now() + getTtl('seasons') * 1000);
 
-    await prisma.$transaction([
-      prisma.cachedSeason.deleteMany({ where: { competitionId } }),
-      ...seasons.map((s) =>
-        prisma.cachedSeason.create({
-          data: {
-            id: s.id,
-            competitionId: s.competitionId,
-            startDate: s.startDate,
-            endDate: s.endDate,
-            currentMatchday: s.currentMatchday ?? null,
-            expiresAt,
-          },
-        })
-      ),
-    ]);
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.cachedSeason.deleteMany({ where: { competitionId } });
+        for (const s of seasons) {
+          await tx.cachedSeason.create({
+            data: {
+              id: s.id,
+              competitionId: s.competitionId,
+              startDate: s.startDate,
+              endDate: s.endDate,
+              currentMatchday: s.currentMatchday ?? null,
+              expiresAt,
+            },
+          });
+        }
+      },
+      { timeout: 15000 }
+    );
 
     const key = this.redisKey('seasons', competitionId);
     await this.setInRedis(key, seasons, getTtl('seasons'));
@@ -169,22 +176,25 @@ export class CacheService {
   async cacheTeams(seasonId: string, teams: Team[]): Promise<void> {
     const expiresAt = new Date(Date.now() + getTtl('teams') * 1000);
 
-    await prisma.$transaction([
-      prisma.cachedTeam.deleteMany({ where: { seasonId } }),
-      ...teams.map((t) =>
-        prisma.cachedTeam.create({
-          data: {
-            id: t.id,
-            seasonId,
-            name: t.name,
-            shortName: t.shortName,
-            tla: t.tla,
-            crestUrl: t.crestUrl ?? null,
-            expiresAt,
-          },
-        })
-      ),
-    ]);
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.cachedTeam.deleteMany({ where: { seasonId } });
+        for (const t of teams) {
+          await tx.cachedTeam.create({
+            data: {
+              id: t.id,
+              seasonId,
+              name: t.name,
+              shortName: t.shortName,
+              tla: t.tla,
+              crestUrl: t.crestUrl ?? null,
+              expiresAt,
+            },
+          });
+        }
+      },
+      { timeout: 15000 }
+    );
 
     const key = this.redisKey('teams', seasonId);
     await this.setInRedis(key, teams, getTtl('teams'));
@@ -225,30 +235,33 @@ export class CacheService {
   async cacheMatches(seasonId: string, matches: Match[]): Promise<void> {
     const expiresAt = new Date(Date.now() + getTtl('matches') * 1000);
 
-    await prisma.$transaction([
-      prisma.cachedMatch.deleteMany({ where: { seasonId } }),
-      ...matches.map((m) =>
-        prisma.cachedMatch.create({
-          data: {
-            id: m.id,
-            competitionId: m.competitionId,
-            seasonId: m.seasonId,
-            matchday: m.matchday,
-            utcDate: m.utcDate,
-            status: m.status,
-            homeTeamId: m.homeTeam.id,
-            homeTeamName: m.homeTeam.name,
-            awayTeamId: m.awayTeam.id,
-            awayTeamName: m.awayTeam.name,
-            ftHomeScore: m.score.fullTime.home,
-            ftAwayScore: m.score.fullTime.away,
-            htHomeScore: m.score.halfTime.home,
-            htAwayScore: m.score.halfTime.away,
-            expiresAt,
-          },
-        })
-      ),
-    ]);
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.cachedMatch.deleteMany({ where: { seasonId } });
+        for (const m of matches) {
+          await tx.cachedMatch.create({
+            data: {
+              id: m.id,
+              competitionId: m.competitionId,
+              seasonId: m.seasonId,
+              matchday: m.matchday,
+              utcDate: m.utcDate,
+              status: m.status,
+              homeTeamId: m.homeTeam.id,
+              homeTeamName: m.homeTeam.name,
+              awayTeamId: m.awayTeam.id,
+              awayTeamName: m.awayTeam.name,
+              ftHomeScore: m.score.fullTime.home,
+              ftAwayScore: m.score.fullTime.away,
+              htHomeScore: m.score.halfTime.home,
+              htAwayScore: m.score.halfTime.away,
+              expiresAt,
+            },
+          });
+        }
+      },
+      { timeout: 15000 }
+    );
 
     const key = this.redisKey('matches', seasonId);
     await this.setInRedis(key, matches, getTtl('matches'));

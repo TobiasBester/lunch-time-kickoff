@@ -33,7 +33,13 @@ export class DataService {
     const cached = await cacheService.getCachedTeams(seasonId);
     if (cached) return cached;
 
-    const teams = await this.provider.getTeamsByCompetition(competitionId, seasonId);
+    const seasons = await this.getSeasonsByCompetition(competitionId);
+    const season = seasons.find((s) => s.id === seasonId);
+    if (!season) {
+      throw new Error(`Season ${seasonId} not found for competition ${competitionId}`);
+    }
+
+    const teams = await this.provider.getTeamsByCompetition(competitionId, String(season.year));
     await cacheService.cacheTeams(seasonId, teams);
     return teams;
   }
@@ -42,7 +48,13 @@ export class DataService {
     const cached = await cacheService.getCachedMatches(seasonId);
     if (cached) return cached;
 
-    const matches = await this.provider.getMatches(competitionId, seasonId);
+    const seasons = await this.getSeasonsByCompetition(competitionId);
+    const season = seasons.find((s) => s.id === seasonId);
+    if (!season) {
+      throw new Error(`Season ${seasonId} not found for competition ${competitionId}`);
+    }
+
+    const matches = await this.provider.getMatches(competitionId, String(season.year));
     await cacheService.cacheMatches(seasonId, matches);
     return matches;
   }
