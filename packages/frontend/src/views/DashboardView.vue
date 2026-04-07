@@ -185,9 +185,15 @@ function formatSeasonLabel(season: Season): string {
 
 function onCompetitionChange() {
   analyticsStore.clearAll();
+  if (competitionStore.selectedCompetition) {
+    competitionStore.selectCompetition(competitionStore.selectedCompetition);
+  }
 }
 
 function onSeasonChange() {
+  if (competitionStore.selectedSeason) {
+    competitionStore.selectSeason(competitionStore.selectedSeason);
+  }
   loadAllAnalytics();
 }
 
