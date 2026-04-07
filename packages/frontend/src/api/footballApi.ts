@@ -44,6 +44,31 @@ export interface HealthStatus {
   redis: string;
 }
 
+export interface DayStats {
+  day: string;
+  wins: number;
+  draws: number;
+  losses: number;
+  total: number;
+}
+
+export interface TimeSlotStats {
+  slot: string;
+  wins: number;
+  draws: number;
+  losses: number;
+  total: number;
+}
+
+export interface TeamStats {
+  teamId: string;
+  teamName: string;
+  wins: number;
+  draws: number;
+  losses: number;
+  total: number;
+}
+
 // In production, VITE_API_BASE_URL is set to the backend Cloud Run URL at build time.
 // In development, it is empty and Vite's dev-server proxy forwards /api and /health.
 const BACKEND_URL = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -83,5 +108,24 @@ export const footballApi = {
   async invalidateCache(type?: string): Promise<string> {
     const { data } = await api.post('/cache/invalidate', type ? { type } : {});
     return data.message;
+  },
+
+  async getDayOfWeekAnalytics(competitionId: string, seasonId: string, teamId?: string): Promise<DayStats[]> {
+    const params: Record<string, string> = { competitionId, seasonId };
+    if (teamId) params.teamId = teamId;
+    const { data } = await api.get('/analytics/by-day-of-week', { params });
+    return data.data;
+  },
+
+  async getTimeOfDayAnalytics(competitionId: string, seasonId: string, teamId?: string): Promise<TimeSlotStats[]> {
+    const params: Record<string, string> = { competitionId, seasonId };
+    if (teamId) params.teamId = teamId;
+    const { data } = await api.get('/analytics/by-time-of-day', { params });
+    return data.data;
+  },
+
+  async getTeamAnalytics(competitionId: string, seasonId: string): Promise<TeamStats[]> {
+    const { data } = await api.get('/analytics/by-team', { params: { competitionId, seasonId } });
+    return data.data;
   },
 };

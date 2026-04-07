@@ -15,3 +15,37 @@ export interface MatchAnalytics {
   teamName: string;
   isHomeGame: boolean;
 }
+
+/**
+ * Aggregated win/draw/loss stats for a given day of week
+ */
+export interface DayStats {
+  day: string; // "Monday", "Tuesday", etc.
+  wins: number;
+  draws: number;
+  losses: number;
+  total: number;
+}
+
+/**
+ * Aggregated win/draw/loss stats for a given time slot
+ */
+export interface TimeSlotStats {
+  slot: string; // "Early", "Afternoon", "Evening"
+  wins: number;
+  draws: number;
+  losses: number;
+  total: number;
+}
+
+/**
+ * Aggregated win/draw/loss stats for a team across a season
+ */
+export interface TeamStats {
+  teamId: string;
+  teamName: string;
+  wins: number;
+  draws: number;
+  losses: number;
+  total: number;
+}

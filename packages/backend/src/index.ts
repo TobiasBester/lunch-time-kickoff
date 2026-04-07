@@ -8,6 +8,7 @@ import { DataService } from './services/DataService';
 import { createCompetitionsRouter } from './routes/competitions';
 import { createSeasonsRouter } from './routes/seasons';
 import { createCacheRouter } from './routes/cache';
+import { createAnalyticsRouter } from './routes/analytics';
 
 const app = express();
 
@@ -71,6 +72,9 @@ app.get('/api', (req: Request, res: Response) => {
       seasonTeams: 'GET /api/seasons/:id/teams?competitionId=:cid',
       seasonMatches: 'GET /api/seasons/:id/matches?competitionId=:cid',
       cacheInvalidate: 'POST /api/cache/invalidate',
+      analyticsByDay: 'GET /api/analytics/by-day-of-week?competitionId=:cid&seasonId=:sid',
+      analyticsByTime: 'GET /api/analytics/by-time-of-day?competitionId=:cid&seasonId=:sid',
+      analyticsByTeam: 'GET /api/analytics/by-team?competitionId=:cid&seasonId=:sid',
     },
   });
 });
@@ -79,6 +83,7 @@ app.get('/api', (req: Request, res: Response) => {
 app.use('/api/competitions', createCompetitionsRouter(dataService));
 app.use('/api/seasons', createSeasonsRouter(dataService));
 app.use('/api/cache', createCacheRouter());
+app.use('/api/analytics', createAnalyticsRouter(dataService));
 
 // Graceful shutdown
 async function shutdown(): Promise<void> {
